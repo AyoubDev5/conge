@@ -469,7 +469,7 @@ def fetch_employees(tree):
     """Fetch employees from database and display in table."""
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM employes")
+    cursor.execute("SELECT e.id, e.name, e.cin, e.lease_number, e.name_frame FROM employes e")
     rows = cursor.fetchall()
     db.close()
 
