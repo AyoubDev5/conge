@@ -59,7 +59,7 @@ def fill_leave_fields(tree, employee_id, start_date, end_date, left_day, remaini
 
 #     db = connect_db()
 #     cursor = db.cursor()
-#     cursor.execute("UPDATE conges SET start_date=%s, end_date=%s, left_day=%s, remaining_day=%s WHERE id=%s",
+#     cursor.execute("UPDATE conges SET start_date=?, end_date=?, left_day=?, remaining_day=? WHERE id=?",
 #                    (start, end, left_day, remaining_day, leave_id))
     
 #     db.commit()
@@ -79,7 +79,7 @@ def delete_leave(tree):
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("DELETE FROM conges WHERE id=%s", (leave_id,))
+    cursor.execute("DELETE FROM conges WHERE id=?", (leave_id,))
     db.commit()
     db.close()
 
@@ -104,7 +104,7 @@ def add_leave(tree, employee_id, start_date, end_date, left_day, remaining_day):
     current_year = datetime.strptime(start, "%Y/%m/%d").year
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO conges (employee_id, start_date, end_date, left_day, remaining_day, year) VALUES (%s, %s, %s, %s, %s, %s)",
+    cursor.execute("INSERT INTO conges (employee_id, start_date, end_date, left_day, remaining_day, year) VALUES (?, ?, ?, ?, ?, ?)",
                    (employee_id, start, end, left_day, remaining_day,current_year))
     db.commit()
     db.close()
@@ -135,7 +135,7 @@ def get_remaining_days(employee_id):
     # db = connect_db()
     # cursor = db.cursor()
     # id = extract_employee_id(employee_id) 
-    # query = "SELECT remaining_day FROM conges WHERE employee_id = %s ORDER BY id DESC LIMIT 1"
+    # query = "SELECT remaining_day FROM conges WHERE employee_id = ? ORDER BY id DESC LIMIT 1"
     # cursor.execute(query, (id,))
     # result = cursor.fetchone()
     # return result[0] if result else 22
@@ -147,7 +147,7 @@ def get_remaining_days(employee_id):
     id = extract_employee_id(employee_id) 
     cursor.execute("""
         SELECT remaining_day FROM conges
-        WHERE employee_id = %s AND year = %s
+        WHERE employee_id = ? AND year = ?
         ORDER BY id DESC LIMIT 1
     """, (id, last_year))
 
@@ -157,7 +157,7 @@ def get_remaining_days(employee_id):
 
     cursor.execute("""
         SELECT SUM(left_day) FROM conges
-        WHERE employee_id = %s AND year = %s
+        WHERE employee_id = ? AND year = ?
     """, (id, current_year))
 
     used_days = cursor.fetchone()[0]
@@ -176,7 +176,7 @@ def get_holidays():
         db = connect_db()
         cursor = db.cursor()
         cursor.execute("SELECT date_holiday FROM holidays") 
-        holidays = {row[0].strftime("%Y-%m-%d") for row in cursor.fetchall()}  
+        holidays = {datetime.strptime(row[0], "%Y-%m-%d").strftime("%Y-%m-%d") for row in cursor.fetchall()}  
         db.close()
         return holidays
 
@@ -247,7 +247,7 @@ def search_conge(tree, search_entry):
     try:
         query = "SELECT c.id, e.name, c.start_date, c.end_date, c.left_day, c.remaining_day, c.year " \
                     "FROM conges c JOIN employes e ON c.employee_id = e.id " \
-                    "WHERE e.name LIKE %s"
+                    "WHERE e.name LIKE ?"
         cursor.execute(query, (f"%{search_text}%",))
             
         rows = cursor.fetchall()
@@ -274,7 +274,7 @@ def leave_data_word(name):
     query1 = """
         SELECT e.cin,e.lease_number, e.name_frame, e.nameFr, e.nameFrameFr
         FROM employes e
-        WHERE e.name = %s
+        WHERE e.name = ?
     """
     cursor.execute(query1,(name,))
     data = cursor.fetchone()
@@ -449,13 +449,13 @@ def search_employee(tree, search_entry, search_by):
     cursor = db.cursor()
 
     if search_by == "Name":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE %s", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE ?", (f"%{search_term}%",))
     elif search_by == "CIN":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE %s", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE ?", (f"%{search_term}%",))
     elif search_by == "Lease Number":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE %s", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE ?", (f"%{search_term}%",))
     elif search_by == "Name Frame":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE %s", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE ?", (f"%{search_term}%",))
     else:
         cursor.execute("SELECT * FROM employes") 
 
@@ -521,13 +521,13 @@ def open_employee_selection(employee_entry):
         cursor = db.cursor()
 
         if selected_filter.get() == "Name":
-            cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE %s", (f"%{search_term}%",))
+            cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE ?", (f"%{search_term}%",))
         elif selected_filter.get() == "CIN":
-            cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE %s", (f"%{search_term}%",))
+            cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE ?", (f"%{search_term}%",))
         elif selected_filter.get() == "Lease Number":
-            cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE %s", (f"%{search_term}%",))
+            cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE ?", (f"%{search_term}%",))
         elif selected_filter.get() == "Name Frame":
-            cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE %s", (f"%{search_term}%",))
+            cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE ?", (f"%{search_term}%",))
         else:
             cursor.execute("SELECT * FROM employes")  
 
