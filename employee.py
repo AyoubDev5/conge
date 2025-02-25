@@ -19,12 +19,14 @@ def fetch_employees(tree):
     for row in rows:
         tree.insert("", "end", values=row)
 
-def add_employee(tree, name, cin, lease_number, name_frame):
+def add_employee(tree, name, nameFr, cin, lease_number, name_frame, nameFrameFr):
     """Add a new employee to the database."""
     name = name.get()
+    nameFr = nameFr.get()
     cin = cin.get()
     lease_number = lease_number.get()
     name_frame = name_frame.get()
+    nameFrameFr = nameFrameFr.get()
 
     if not name or not cin or not lease_number or not name_frame:
         messagebox.showwarning("خطأ في الإدخال", "جميع الحقول مطلوبة")
@@ -32,27 +34,29 @@ def add_employee(tree, name, cin, lease_number, name_frame):
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO employes (name, cin, lease_number, name_frame) VALUES (%s, %s, %s, %s)", 
-                   (name, cin, lease_number, name_frame))
+    cursor.execute("INSERT INTO employes (name, nameFr, cin, lease_number, name_frame, nameFrameFr) VALUES (%s, %s, %s, %s, %s, %s)", 
+                   (name, nameFr, cin, lease_number, name_frame, nameFrameFr))
     db.commit()
     db.close()
 
     messagebox.showinfo("النجاح", "موظف تمت إضافته بنجاح")
     fetch_employees(tree) 
 
-def clear_fields(name, cin, lease_number, name_frame):
+def clear_fields(name, nameFr, cin, lease_number, name_frame, nameFrameFr):
     """Clears input fields."""
     name.delete(0, tk.END)
+    nameFr.delete(0, tk.END)
     cin.delete(0, tk.END)
     lease_number.delete(0, tk.END)
     name_frame.delete(0, tk.END)
+    nameFrameFr.delete(0, tk.END)
 
-def fill_update_fields(tree, name, cin, lease_number, name_frame, selected_id):
+def fill_update_fields(tree, name, nameFr, cin, lease_number, name_frame, nameFrameFr, selected_id):
     """Fills input fields with selected employee's data or clears them if deselected."""
     selected_item = tree.selection()
     if not selected_item:
 
-        clear_fields(name, cin, lease_number, name_frame)
+        clear_fields(name, nameFr, cin, lease_number, name_frame, nameFrameFr)
         selected_id.set("")
         return
 
@@ -60,25 +64,31 @@ def fill_update_fields(tree, name, cin, lease_number, name_frame, selected_id):
 
     if selected_id.get() == employee_data[0]:  
         tree.selection_remove(selected_item[0])
-        clear_fields(name, cin, lease_number, name_frame)
+        clear_fields(name, nameFr, cin, lease_number, name_frame, nameFrameFr)
         selected_id.set("")
     else:
         name.delete(0, tk.END)
         name.insert(0, employee_data[1])
 
+        nameFr.delete(0, tk.END)
+        nameFr.insert(0, employee_data[2])
+
         cin.delete(0, tk.END)
-        cin.insert(0, employee_data[2])
+        cin.insert(0, employee_data[3])
 
         lease_number.delete(0, tk.END)
-        lease_number.insert(0, employee_data[3])
+        lease_number.insert(0, employee_data[4])
 
         name_frame.delete(0, tk.END)
-        name_frame.insert(0, employee_data[4])
+        name_frame.insert(0, employee_data[5])
+
+        nameFrameFr.delete(0, tk.END)
+        nameFrameFr.insert(0, employee_data[6])
 
         selected_id.set(employee_data[0])
 
 
-def update_employee(tree, name, cin, lease_number, name_frame):
+def update_employee(tree, name, nameFr, cin, lease_number, name_frame, nameFrameFr):
     """Update an existing employee."""
     selected_item = tree.selection()
     if not selected_item:
@@ -90,6 +100,8 @@ def update_employee(tree, name, cin, lease_number, name_frame):
     cin = cin.get()
     lease_number = lease_number.get()
     name_frame = name_frame.get()
+    nameFr = nameFr.get()
+    nameFrameFr = nameFrameFr.get()
 
     if not name or not cin or not lease_number or not name_frame:
         messagebox.showwarning("خطأ في الإدخال", "جميع الحقول مطلوبة")
@@ -97,8 +109,8 @@ def update_employee(tree, name, cin, lease_number, name_frame):
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("UPDATE employes SET name=%s, cin=%s, lease_number=%s,  name_frame=%s WHERE id=%s",
-                   (name, cin, lease_number, name_frame, employee_id))
+    cursor.execute("UPDATE employes SET name=%s, nameFr=%s, cin=%s, lease_number=%s,  name_frame=%s, nameFrameFr=%s WHERE id=%s",
+                   (name, nameFr, cin, lease_number, name_frame, nameFrameFr, employee_id))
     db.commit()
     db.close()
 
@@ -157,7 +169,7 @@ def fetch_paginated_employees(tree, page_label, btn_next, btn_prev, search_query
     db = connect_db()
     cursor = db.cursor()
 
-    query = "SELECT id, name, cin, lease_number, name_frame FROM employes"
+    query = "SELECT id, name, nameFr, cin, lease_number, name_frame, nameFrameFr FROM employes"
     params = []
 
     if search_query and filter_by:
@@ -274,6 +286,10 @@ def open_employee_management():
     name = tk.Entry(frame)
     name.grid(row=0, column=1) 
 
+    tk.Label(frame, text="الاسم بالفرنسية", bg="#f4f4f4").grid(row=0, column=0)
+    nameFr = tk.Entry(frame)
+    nameFr.grid(row=0, column=2) 
+
     tk.Label(frame, text="رقم البطاقة الوطنية", bg="#f4f4f4").grid(row=1, column=0)
     cin = tk.Entry(frame)
     cin.grid(row=1, column=1)
@@ -286,15 +302,19 @@ def open_employee_management():
     name_frame = tk.Entry(frame)
     name_frame.grid(row=3, column=1)
 
+    tk.Label(frame, text="اسم الاطار بالفرنسية", bg="#f4f4f4").grid(row=3, column=0)
+    name_frameFr = tk.Entry(frame)
+    name_frameFr.grid(row=3, column=2)
+
     btn_frame = tk.Frame(emp_window, bg="#f4f4f4")
     btn_frame.pack(pady=10)
 
     btn_add = tk.Button(btn_frame, text="إضافة", bg="#4CAF50", fg="white",
-                        command=lambda: add_employee(tree, name, cin, lease_number, name_frame))
+                        command=lambda: add_employee(tree, name, nameFr, cin, lease_number, name_frame, name_frameFr))
     btn_add.grid(row=0, column=0, padx=5)
 
     btn_update = tk.Button(btn_frame, text="تحديث", bg="#2196F3", fg="white",
-                           command=lambda: update_employee(tree, name, cin, lease_number, name_frame))
+                           command=lambda: update_employee(tree, name, nameFr, cin, lease_number, name_frame, name_frameFr))
     btn_update.grid(row=0, column=1, padx=5)
 
     btn_delete = tk.Button(btn_frame, text="حذف", bg="#FF5733", fg="white",
@@ -302,7 +322,7 @@ def open_employee_management():
     btn_delete.grid(row=0, column=2, padx=5)
 
     selected_id = tk.StringVar()
-    tree.bind("<ButtonRelease-1>", lambda event: fill_update_fields(tree, name, cin, lease_number, name_frame, selected_id))
+    tree.bind("<ButtonRelease-1>", lambda event: fill_update_fields(tree, name, nameFr, cin, lease_number, name_frame, name_frameFr, selected_id))
 
     btn_close = tk.Button(emp_window, text="إغلاق", bg="gray", fg="white", command=emp_window.destroy)
     btn_close.pack(pady=10)
