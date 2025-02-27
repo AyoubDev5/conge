@@ -34,7 +34,7 @@ def add_employee(tree, name, nameFr, cin, lease_number, name_frame, nameFrameFr)
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO employes (name, nameFr, cin, lease_number, name_frame, nameFrameFr) VALUES (?, ?, ?, ?, ?, ?)", 
+    cursor.execute("INSERT INTO employes (name, nameFr, cin, lease_number, name_frame, nameFrameFr) VALUES (%s, %s, %s, %s, %s, %s)", 
                    (name, nameFr, cin, lease_number, name_frame, nameFrameFr))
     db.commit()
     db.close()
@@ -109,7 +109,7 @@ def update_employee(tree, name, nameFr, cin, lease_number, name_frame, nameFrame
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("UPDATE employes SET name=?, nameFr=?, cin=?, lease_number=?,  name_frame=?, nameFrameFr=? WHERE id=?",
+    cursor.execute("UPDATE employes SET name=%s, nameFr=%s, cin=%s, lease_number=%s,  name_frame=%s, nameFrameFr=%s WHERE id=%s",
                    (name, nameFr, cin, lease_number, name_frame, nameFrameFr, employee_id))
     db.commit()
     db.close()
@@ -128,7 +128,7 @@ def delete_employee(tree):
 
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("DELETE FROM employes WHERE id=?", (employee_id,))
+    cursor.execute("DELETE FROM employes WHERE id=%s", (employee_id,))
     db.commit()
     db.close()
 
@@ -146,13 +146,13 @@ def search_employee(tree, search_entry, search_by):
     cursor = db.cursor()
 
     if search_by == "Name":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE ?", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(name) LIKE %s", (f"%{search_term}%",))
     elif search_by == "CIN":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE ?", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(cin) LIKE %s", (f"%{search_term}%",))
     elif search_by == "Lease Number":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE ?", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(lease_number) LIKE %s", (f"%{search_term}%",))
     elif search_by == "Name Frame":
-        cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE ?", (f"%{search_term}%",))
+        cursor.execute("SELECT * FROM employes WHERE LOWER(name_frame) LIKE %s", (f"%{search_term}%",))
     else:
         cursor.execute("SELECT * FROM employes") 
 
@@ -173,13 +173,13 @@ def fetch_paginated_employees(tree, page_label, btn_next, btn_prev, search_query
     params = []
 
     if search_query and filter_by:
-        query += f" WHERE {filter_by.lower().replace(' ', '_')} LIKE ?"
+        query += f" WHERE {filter_by.lower().replace(' ', '_')} LIKE %s"
         params.append(f"%{search_query}%")
 
     cursor.execute(query, params)
     total_rows = len(cursor.fetchall())
 
-    query += " LIMIT ? OFFSET ?"
+    query += " LIMIT %s OFFSET %s"
     params.extend([rows_per_page, (page_number - 1) * rows_per_page])
 
     cursor.execute(query, params)

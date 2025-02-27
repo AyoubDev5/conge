@@ -2,6 +2,7 @@ import tkinter as tk
 from navigation import open_page
 from employee import open_employee_management
 from conge import open_conge_management
+from attestation import open_attestation_management
 
 def open_dashboard(root):
     """Admin dashboard with only Employee Management and Leave Management."""
@@ -24,6 +25,10 @@ def open_dashboard(root):
     btn_conge = tk.Button(dashboard, text="الإجازة ", font=("Arial", 12, "bold"), bg="#2196F3", fg="white",
                           command=open_conge_management)
     btn_conge.pack(pady=10)
+
+    btn_attestation = tk.Button(dashboard, text="شهادة العمل ", font=("Arial", 12, "bold"), bg="#2196F3", fg="white",
+                          command=open_attestation_management)
+    btn_attestation.pack(pady=10)
 
     # Logout Button
     btn_logout = tk.Button(dashboard, text="تسجيل الخروج", font=("Arial", 12, "bold"), bg="#FF5733", fg="white",
