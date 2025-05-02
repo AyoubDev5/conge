@@ -120,14 +120,14 @@ def reset_search(tree, search_var):
     search_var.set("")  
     fetch_attestation_data(tree)
 
-def leave_data_word(name):
+def attestaion_data_word(name):
     """Fetch leave data from the database for a specific employee."""
     db = connect_db()
     cursor = db.cursor()
     query1 = """
         SELECT e.cin,e.lease_number, e.name_frame, e.nameFr, e.nameFrameFr
         FROM employes e
-        WHERE e.name = ?
+        WHERE e.name = %s
     """
     cursor.execute(query1,(name,))
     data = cursor.fetchone()
@@ -135,49 +135,48 @@ def leave_data_word(name):
     db.close()
     return data
 
-def generate_leave_document(tree, output_filename="generate.docx"):
-    """Generate a leave document for an employee using the Word template."""
+def generate_attestation_document(tree, sex):
+    """Générer une attestation sous format Word."""
     selected_item = tree.selection()
 
-    name = tree.item(selected_item[0], "values")[1]
-    dateStart = tree.item(selected_item[0], "values")[2]
-    leftDay = tree.item(selected_item[0], "values")[4]
- 
-    doc = spd.Document()
-    doc.LoadFromFile("template.docx")
-
-    leave_data = leave_data_word(name)
-
-    if not leave_data:
-        print("No leave data found for this employee.")
+    if not selected_item:
+        messagebox.showerror("Erreur", "Veuillez sélectionner une attestation.")
         return
+    
+    employee_name = tree.item(selected_item[0], "values")[1]
+    data = attestaion_data_word(employee_name)
+    langageAttestation = tree.item(selected_item[0], "values")[4]
+    numero = tree.item(selected_item[0], "values")[0]
+    doc = spd.Document()
+    if langageAttestation == "عربية" and sex.get() == "ذكر":
+        doc.LoadFromFile("attestationArbMen.docx")
+    elif langageAttestation == "عربية" and sex.get() == "انثى" :
+         doc.LoadFromFile("attestationArbWomen.docx")
+    elif langageAttestation == "فرنسية" and sex.get() == "ذكر" :
+         doc.LoadFromFile("attestationFrMen.docx")
+    elif langageAttestation == "فرنسية" and sex.get() == "انثى" :
+         doc.LoadFromFile("attestationFrWomen.docx")
+    else :
+        return  
 
-    cin = leave_data[0]
-    lease_number = leave_data[1]
-    frame = leave_data[2]
-    frameFr = leave_data[4]
-    nameFr = leave_data[3]
+    date = datetime.today().date()
+    current = date.strftime("%Y/%m/%d")
+    print(str(data[0]))
+    doc.Replace("رقم", numero, True, True)
+    doc.Replace("name", employee_name, True, True)
+    doc.Replace("بطاقة", str(data[0]), True, True)
+    doc.Replace("اطار", str(data[2]), True, True)
+    doc.Replace("تاجير", data[1], True, True)
+    doc.Replace("employee_name", employee_name, True, True)
+    doc.Replace("date", current, True, True)
 
-    year = datetime.now().year
-    dateNow = datetime.now().strftime("%d/%m/%Y")
-
-    doc.Replace("name", name, True, True)
-    doc.Replace("cin", cin, True, True)
-    doc.Replace("frame", frame, True, True)
-    doc.Replace("lease", lease_number, True, True)
-    doc.Replace("leftDay", leftDay, True, True)
-    doc.Replace("dateStart", dateStart, True, True)
-    doc.Replace("nameFr", nameFr, True, True)
-    doc.Replace("frameFr", frameFr, True, True)
-    doc.Replace("year", str(year), True, True)
-    doc.Replace("dateNow", dateNow, True, True)
-
-    desktop_path = get_desktop_path()
-    output_path = os.path.join(desktop_path, "output/"+output_filename)
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    output_path = os.path.join(desktop_path, "attestation.docx")
     doc.SaveToFile(output_path, spd.FileFormat.Docx2016)
     doc.Close()
     os.startfile(output_path)
-    print(f"Document generated: {output_path}")
+
+    print(f"Document généré : {output_path}")
 
 def get_desktop_path():
     """Get the Desktop path for different operating systems."""
@@ -254,6 +253,12 @@ def open_attestation_management():
     remis_entry = tk.Entry(frame, textvariable=remis)
     remis_entry.grid(row=3, column=1)
 
+    tk.Label(frame, text="الجنس", bg="#f4f4f4").grid(row=4, column=0)
+    sex = tk.StringVar(value="ذكر") 
+
+    tk.Radiobutton(frame, text="ذكر", variable=sex, value="ذكر", bg="#f4f4f4").grid(row=4, column=1, sticky="w")
+    tk.Radiobutton(frame, text="انثى", variable=sex, value="انثى", bg="#f4f4f4").grid(row=4, column=2, sticky="w")
+
     # Buttons
     btn_frame = tk.Frame(attestation_window, bg="#f4f4f4")
     btn_frame.pack(pady=10)
@@ -267,8 +272,9 @@ def open_attestation_management():
     btn_delete.grid(row=0, column=2, padx=5)
 
     btn_delete = tk.Button(btn_frame, text="طبع", bg="#2196F3", fg="white",
-                           command=lambda: generate_leave_document(tree))
+                           command=lambda: generate_attestation_document(tree, sex))
     btn_delete.grid(row=0, column=3, padx=5)
+
 
     tree.bind("<ButtonRelease-1>", lambda event: fill_leave_fields(tree, selected_employee, objectif, langageAttestation, remis))
 
